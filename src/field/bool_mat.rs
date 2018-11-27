@@ -14,6 +14,10 @@ impl BoolMat {
 			contents,
 		}
 	}
+
+	fn set(&mut self, i: usize, j: usize) {
+		self.contents[i * self.width + j] = true;
+	}
 }
 
 #[cfg(test)]
@@ -27,6 +31,21 @@ mod tests {
 				height: 3,
 				width: 2,
 				contents: vec![false; 6]
+			}
+		);
+	}
+
+	#[test]
+	fn set() {
+		use super::BoolMat;
+		let mut bm = BoolMat::new(1, 3);
+		bm.set(0, 1);
+		assert_eq!(
+			bm,
+			BoolMat {
+				height: 1,
+				width: 3,
+				contents: vec![false, true, false]
 			}
 		);
 	}
