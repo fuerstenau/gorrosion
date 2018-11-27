@@ -1,0 +1,6 @@
+[package]
+name = "gorrosion"
+version = "0.0.0"
+authors = ["Peter Fürstenau"]
+
+[dependencies]
