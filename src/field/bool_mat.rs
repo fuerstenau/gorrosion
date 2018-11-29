@@ -58,6 +58,12 @@ impl BoolMat {
 			contents,
 		}
 	}
+
+	fn eval(&self, v: &BoolVec) -> BoolVec {
+		assert_eq!(self.width, v.len());
+		let mat = BoolMat::mult(self, &v.mat);
+		BoolVec { mat }
+	}
 }
 
 impl BoolVec {
