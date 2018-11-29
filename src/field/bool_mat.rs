@@ -36,20 +36,20 @@ impl BoolMat {
 		self.contents[i * self.width + k]
 	}
 
-	fn mult_get(A: &BoolMat, B: &BoolMat, i: usize, k: usize) -> bool {
-		assert_eq!(A.width, B.height);
-		let len = A.width;
-		(0..len).map(|n| A.get(i, n) & B.get(n, k)).any(|n| n)
+	fn mult_get(a: &BoolMat, b: &BoolMat, i: usize, k: usize) -> bool {
+		assert_eq!(a.width, b.height);
+		let len = a.width;
+		(0..len).map(|n| a.get(i, n) & b.get(n, k)).any(|n| n)
 	}
 
-	fn mult(A: &BoolMat, B: &BoolMat) -> BoolMat {
-		assert_eq!(A.width, B.height);
-		let height = A.height;
-		let width = B.width;
+	fn mult(a: &BoolMat, b: &BoolMat) -> BoolMat {
+		assert_eq!(a.width, b.height);
+		let height = a.height;
+		let width = b.width;
 		let mut contents = Vec::with_capacity(height * width);
 		for i in 0..height {
 			for k in 0..width {
-				contents.push(BoolMat::mult_get(A, B, i, k));
+				contents.push(BoolMat::mult_get(a, b, i, k));
 			}
 		}
 		BoolMat {
@@ -122,14 +122,14 @@ mod tests {
 	#[test]
 	fn mult() {
 		use super::BoolMat;
-		let mut A = BoolMat::falses(1, 2);
-		let mut B = BoolMat::falses(2, 3);
-		A.set(0, 0);
-		B.set(0, 1);
-		B.set(1, 0);
-		B.set(1, 2);
+		let mut a = BoolMat::falses(1, 2);
+		let mut b = BoolMat::falses(2, 3);
+		a.set(0, 0);
+		b.set(0, 1);
+		b.set(1, 0);
+		b.set(1, 2);
 		assert_eq!(
-			BoolMat::mult(&A, &B),
+			BoolMat::mult(&a, &b),
 			BoolMat {
 				height: 1,
 				width: 3,
