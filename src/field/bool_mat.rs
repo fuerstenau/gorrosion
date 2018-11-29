@@ -1,16 +1,16 @@
 #[derive(Debug, Eq, PartialEq)]
-struct BoolMat {
+pub struct BoolMat {
 	height: usize,
 	width: usize,
 	contents: Vec<bool>,
 }
 
-struct BoolVec {
+pub struct BoolVec {
 	mat: BoolMat,
 }
 
 impl BoolMat {
-	fn falses(height: usize, width: usize) -> BoolMat {
+	pub fn falses(height: usize, width: usize) -> BoolMat {
 		let contents = vec![false; height * width];
 		BoolMat {
 			height,
@@ -19,7 +19,7 @@ impl BoolMat {
 		}
 	}
 
-	fn from_diag(diag: BoolVec) -> BoolMat {
+	pub fn from_diag(diag: BoolVec) -> BoolMat {
 		let len = diag.len();
 		let mut res = BoolMat::falses(len, len);
 		for i in diag.set_positions() {
@@ -28,11 +28,11 @@ impl BoolMat {
 		res
 	}
 
-	fn set(&mut self, i: usize, k: usize) {
+	pub fn set(&mut self, i: usize, k: usize) {
 		self.contents[i * self.width + k] = true;
 	}
 
-	fn get(&self, i: usize, k: usize) -> bool {
+	pub fn get(&self, i: usize, k: usize) -> bool {
 		self.contents[i * self.width + k]
 	}
 
@@ -42,7 +42,7 @@ impl BoolMat {
 		(0..len).map(|n| a.get(i, n) & b.get(n, k)).any(|n| n)
 	}
 
-	fn mult(a: &BoolMat, b: &BoolMat) -> BoolMat {
+	pub fn mult(a: &BoolMat, b: &BoolMat) -> BoolMat {
 		assert_eq!(a.width, b.height);
 		let height = a.height;
 		let width = b.width;
@@ -59,7 +59,7 @@ impl BoolMat {
 		}
 	}
 
-	fn eval(&self, v: &BoolVec) -> BoolVec {
+	pub fn eval(&self, v: &BoolVec) -> BoolVec {
 		assert_eq!(self.width, v.len());
 		let mat = BoolMat::mult(self, &v.mat);
 		BoolVec { mat }
@@ -67,7 +67,7 @@ impl BoolMat {
 }
 
 impl BoolVec {
-	fn falses(size: usize) -> BoolVec {
+	pub fn falses(size: usize) -> BoolVec {
 		let mat = BoolMat::falses(size, 1);
 		BoolVec { mat }
 	}
@@ -76,7 +76,7 @@ impl BoolVec {
 		self.mat.height
 	}
 
-	fn get(&self, i: usize) -> bool {
+	pub fn get(&self, i: usize) -> bool {
 		self.mat.get(i, 1)
 	}
 
