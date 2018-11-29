@@ -2,15 +2,17 @@ mod bool_mat;
 
 use self::bool_mat::*;
 
-pub struct Field {
+struct Board {
 	size: usize,
 	adj: BoolMat,
 	black_stones: BoolVec,
 	white_stones: BoolVec,
+	black_adj: Option(BoolMat),
+	white_adj: Option(BoolMat),
 }
 
-impl Field {
-	pub fn square(length: usize) -> Field {
+impl Board {
+	fn square(length: usize) -> Field {
 		let size = length * length;
 		let mut adj = BoolMat::from_diag(BoolVec::trues(size));
 		let index = |j, k| j * length + k;
@@ -22,11 +24,15 @@ impl Field {
 		}
 		let black_stones = BoolVec::falses(size);
 		let white_stones = BoolVec::falses(size);
+		let black_adj = Some(BoolMat::falses(size, size));
+		let white_adj = Some(BoolMat::falses(size, size));
 		Field {
 			size,
 			adj,
 			black_stones,
 			white_stones,
+			black_adj,
+			white_adj,
 		}
 	}
 }
