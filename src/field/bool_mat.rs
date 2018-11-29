@@ -19,6 +19,15 @@ impl BoolMat {
 		}
 	}
 
+	pub fn trues(height: usize, width: usize) -> BoolMat {
+		let contents = vec![true; height * width];
+		BoolMat {
+			height,
+			width,
+			contents,
+		}
+	}
+
 	pub fn from_diag(diag: BoolVec) -> BoolMat {
 		let len = diag.len();
 		let mut res = BoolMat::falses(len, len);
@@ -30,6 +39,11 @@ impl BoolMat {
 
 	pub fn set(&mut self, i: usize, k: usize) {
 		self.contents[i * self.width + k] = true;
+	}
+
+	pub fn sym_set(&mut self, i: usize, k: usize) {
+		self.set(i, k);
+		self.set(k, i);
 	}
 
 	pub fn get(&self, i: usize, k: usize) -> bool {
@@ -69,6 +83,11 @@ impl BoolMat {
 impl BoolVec {
 	pub fn falses(size: usize) -> BoolVec {
 		let mat = BoolMat::falses(size, 1);
+		BoolVec { mat }
+	}
+
+	pub fn trues(size: usize) -> BoolVec {
+		let mat = BoolMat::trues(size, 1);
 		BoolVec { mat }
 	}
 
