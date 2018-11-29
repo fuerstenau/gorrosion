@@ -28,7 +28,7 @@ impl BoolMat {
 		}
 	}
 
-	pub fn from_diag(diag: BoolVec) -> BoolMat {
+	pub fn from_diag(diag: &BoolVec) -> BoolMat {
 		let len = diag.len();
 		let mut res = BoolMat::falses(len, len);
 		for i in diag.set_positions() {
@@ -78,6 +78,13 @@ impl BoolMat {
 		let mat = BoolMat::mult(self, &v.mat);
 		BoolVec { mat }
 	}
+
+	// TODO: Kill this function.
+	pub fn assign(&mut self, val: BoolMat) {
+		assert_eq!(self.width, val.width);
+		assert_eq!(self.height, val.height);
+		self.contents = val.contents;
+	}
 }
 
 impl BoolVec {
@@ -97,6 +104,10 @@ impl BoolVec {
 
 	pub fn get(&self, i: usize) -> bool {
 		self.mat.get(i, 1)
+	}
+
+	pub fn set(&mut self, i: usize) {
+		self.mat.set(i, 1)
 	}
 
 	fn set_positions(&self) -> impl Iterator<Item = usize> {
