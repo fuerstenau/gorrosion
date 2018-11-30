@@ -1,11 +1,7 @@
 use core::board::Board;
 use core::bool_mat::*;
 
-enum Color {
-	Black,
-	White,
-}
-
+#[derive(Clone)]
 struct PlayerState<'a, T: 'a + Board> {
 	board: &'a T,
 	stones: BoolVec,
@@ -42,5 +38,66 @@ impl<'a, T: Board> PlayerState<'a, T> {
 			&self.connections,
 			&BoolMat::from_diag(&self.stones),
 		);
+	}
+}
+
+#[derive(Clone, Copy)]
+enum Color {
+	Black,
+	White,
+}
+
+#[derive(Clone)]
+struct GameState<'a, T: 'a + Board + Clone> {
+	black: PlayerState<'a, T>,
+	white: PlayerState<'a, T>,
+	to_move: Color,
+}
+
+enum Move<I> {
+	Pass,
+	Place(I),
+}
+
+struct LocalRules {
+	suicide_allowed: bool,
+}
+
+struct Rules {
+	local_rules: LocalRules,
+	superko: bool,
+}
+
+impl<'a, T: 'a + Board + Clone> GameState<'a, T> {
+	fn free(&self) -> BoolVec {
+		let black = &self.black.stones;
+		let white = &self.white.stones;
+		BoolVec::union(black, white).complement()
+	}
+
+	fn legal_move(&self, mov: Move<T::Index>, rules: LocalRules) -> bool {
+		match mov {
+			Move::Pass => true,
+			Move::Place(i) => self.legal_placement(i, rules),
+		}
+	}
+
+	fn legal_placement(&self, i: T::Index, rules: LocalRules) -> bool {
+		let mut future = self.clone();
+		match self.to_move {
+			Color::Black => future.black.place_stone(i),
+			Color::White => future.white.place_stone(i),
+		};
+		let liberties = future.free();
+		let (player, other) = match self.to_move {
+			Color::Black => (future.black, future.white),
+			Color::White => (future.white, future.black),
+		};
+		let is_free = self.free().get(player.board.index_to_num(i));
+		let kills_something =
+			other.survivors(&liberties) == other.stones;
+		let is_suicide = (!kills_something)
+			& (player.survivors(&liberties) != player.stones);
+		is_free & (!is_suicide | rules.suicide_allowed)
 	}
 }

@@ -1,10 +1,11 @@
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct BoolMat {
 	height: usize,
 	width: usize,
 	contents: Vec<bool>,
 }
 
+#[derive(Clone, Eq, PartialEq)]
 pub struct BoolVec {
 	mat: BoolMat,
 }
