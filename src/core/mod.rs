@@ -1,4 +1,5 @@
 mod bool_mat;
+mod board;
 
 use self::bool_mat::*;
 
