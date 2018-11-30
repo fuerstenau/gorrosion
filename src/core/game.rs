@@ -34,8 +34,10 @@ impl<'a, T: Board> PlayerState<'a, T> {
 	fn kill(&mut self, zombies: &BoolVec) {
 		// The zombies infect everything in contact with them
 		let zombies = self.connections.eval(zombies);
-		self.stones =
-			BoolVec::intersect(&self.stones, &zombies.complement());
+		self.stones = BoolVec::intersection(
+			&self.stones,
+			&zombies.complement(),
+		);
 		self.connections = BoolMat::mult(
 			&self.connections,
 			&BoolMat::from_diag(&self.stones),
