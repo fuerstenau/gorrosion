@@ -48,7 +48,7 @@ enum Color {
 }
 
 #[derive(Clone)]
-struct GameState<'a, T: 'a + Board + Clone> {
+struct GameState<'a, T: 'a + Board> {
 	black: PlayerState<'a, T>,
 	white: PlayerState<'a, T>,
 	to_move: Color,
@@ -68,7 +68,7 @@ struct Rules {
 	superko: bool,
 }
 
-impl<'a, T: 'a + Board + Clone> GameState<'a, T> {
+impl<'a, T: 'a + Board> GameState<'a, T> {
 	fn free(&self) -> BoolVec {
 		let black = &self.black.stones;
 		let white = &self.white.stones;
