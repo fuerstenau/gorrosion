@@ -1,6 +1,6 @@
 use super::bool_mat::*;
 
-pub trait Board: Clone {
+pub trait Board: Clone + Eq {
 	type Index: Copy;
 
 	fn index_to_num(&self, i: Self::Index) -> usize;
@@ -12,7 +12,7 @@ pub trait Board: Clone {
 	fn is_hoshi(&self, i: Self::Index) -> bool;
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Graph {
 	size: usize,
 	adj: BoolMat,
@@ -42,7 +42,7 @@ impl Board for Graph {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Rect {
 	height: usize,
 	width: usize,
@@ -107,7 +107,7 @@ impl Board for Rect {
 	}
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Square {
 	rect: Rect,
 }
