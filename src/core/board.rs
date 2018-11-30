@@ -40,3 +40,67 @@ impl Board for Graph {
 		false
 	}
 }
+
+pub struct Rect {
+	height: usize,
+	width: usize,
+	graph: Graph,
+}
+
+impl Rect {
+	fn index_to_num(width: usize, (j, k): (usize, usize)) -> usize {
+		j * width + k
+	}
+
+	pub fn new(height: usize, width: usize) -> Rect {
+		let size = width * height;
+		let mut adj = BoolMat::from_diag(&BoolVec::trues(size));
+		let index_to_num = |j, k| Rect::index_to_num(width, (j, k));
+		for j in 0..height {
+			for k in 1..width {
+				let a = index_to_num(j, k - 1);
+				let b = index_to_num(j, k);
+				adj.sym_set(a, b);
+			}
+		}
+		for j in 1..height {
+			for k in 0..width {
+				let a = index_to_num(j - 1, k);
+				let b = index_to_num(j, k);
+				adj.sym_set(a, b);
+			}
+		}
+		let graph = Graph { size, adj };
+		Rect {
+			height,
+			width,
+			graph,
+		}
+	}
+}
+
+impl Board for Rect {
+	type Index = (usize, usize);
+
+	fn index_to_num(&self, i: Self::Index) -> usize {
+		Rect::index_to_num(self.width, i)
+	}
+
+	fn num_to_index(&self, n: usize) -> Self::Index {
+		let j = n / self.width;
+		let k = n - j * self.width;
+		(j, k)
+	}
+
+	fn size(&self) -> usize {
+		self.graph.size()
+	}
+
+	fn adjacencies(&self) -> &BoolMat {
+		self.graph.adjacencies()
+	}
+
+	fn is_hoshi(&self, _i: Self::Index) -> bool {
+		false
+	}
+}
