@@ -1,6 +1,11 @@
 use core::board::Board;
 use core::bool_mat::*;
 
+enum Color {
+	Black,
+	White,
+}
+
 struct PlayerState<'a, T: 'a + Board> {
 	board: &'a T,
 	stones: BoolVec,
@@ -19,5 +24,21 @@ impl<'a, T: Board> PlayerState<'a, T> {
 			&mult(&restricted_adj, &self.connections),
 		);
 		self.connections = new_connections;
+	}
+
+	fn survivors(&self, free: &BoolVec) -> BoolVec {
+		let adj = self.board.adjacencies();
+		BoolMat::mult(adj, &self.connections).eval(free)
+	}
+
+	fn kill(&mut self, zombies: &BoolVec) {
+		// The zombies infect everything in contact with them
+		let zombies = self.connections.eval(zombies);
+		self.stones =
+			BoolVec::intersect(&self.stones, &zombies.complement());
+		self.connections = BoolMat::mult(
+			&self.connections,
+			&BoolMat::from_diag(&self.stones),
+		);
 	}
 }
