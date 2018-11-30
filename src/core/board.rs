@@ -139,3 +139,5 @@ impl Board for Square {
 		false
 	}
 }
+
+// TODO: Implement the three standard boards with their hoshi
