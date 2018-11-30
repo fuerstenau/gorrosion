@@ -104,3 +104,38 @@ impl Board for Rect {
 		false
 	}
 }
+
+pub struct Square {
+	rect: Rect,
+}
+
+impl Square {
+	pub fn new(length: usize) -> Square {
+		let rect = Rect::new(length, length);
+		Square { rect }
+	}
+}
+
+impl Board for Square {
+	type Index = (usize, usize);
+
+	fn index_to_num(&self, i: Self::Index) -> usize {
+		self.rect.index_to_num(i)
+	}
+
+	fn num_to_index(&self, n: usize) -> Self::Index {
+		self.rect.num_to_index(n)
+	}
+
+	fn size(&self) -> usize {
+		self.rect.size()
+	}
+
+	fn adjacencies(&self) -> &BoolMat {
+		&self.rect.adjacencies()
+	}
+
+	fn is_hoshi(&self, _i: Self::Index) -> bool {
+		false
+	}
+}
