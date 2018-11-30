@@ -6,6 +6,8 @@ struct PlayerState<'a, T: 'a + Board> {
 	board: &'a T,
 	stones: BoolVec,
 	connections: BoolMat,
+	aga_captures: usize,
+	captures: usize,
 }
 
 impl<'a, T: Board> PlayerState<'a, T> {
@@ -66,6 +68,9 @@ struct LocalRules {
 struct Rules {
 	local_rules: LocalRules,
 	superko: bool,
+	// This is twice the value of komi to allow for half points
+	bikomi: usize,
+	fixed_handicap: bool,
 }
 
 impl<'a, T: 'a + Board> GameState<'a, T> {
