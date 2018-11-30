@@ -103,16 +103,24 @@ impl<'a, T: 'a + Board> GameState<'a, T> {
 	}
 
 	fn legal_move(&self, mov: Move<T::Index>, rules: LocalRules) -> bool {
-		let has_turn = (!rules.alternate_play) | (mov.player == self.to_move);
+		let has_turn =
+			(!rules.alternate_play) | (mov.player == self.to_move);
 		let legal_action = match mov.action {
 			Action::Pass => true,
 			Action::Resign => true,
-			Action::Place(i) => self.legal_placement(i, mov.player, rules),
+			Action::Place(i) => {
+				self.legal_placement(i, mov.player, rules)
+			}
 		};
 		has_turn & legal_action
 	}
 
-	fn legal_placement(&self, i: T::Index, player_color: Color, rules: LocalRules) -> bool {
+	fn legal_placement(
+		&self,
+		i: T::Index,
+		player_color: Color,
+		rules: LocalRules,
+	) -> bool {
 		let mut future = self.clone();
 		match player_color {
 			Color::Black => future.black.place_stone(i),
@@ -140,9 +148,10 @@ struct GameNode<'a, T: 'a + Board> {
 	black_ghosts: BoolVec,
 }
 
-impl<'a, T: 'a + Board>  GameNode<'a, T> {
+impl<'a, T: 'a + Board> GameNode<'a, T> {
 	fn legal_move(&self, mov: Move<T::Index>, rules: Rules) -> bool {
-		let locally_legal = self.state.legal_move(mov, rules.local_rules);
+		let locally_legal =
+			self.state.legal_move(mov, rules.local_rules);
 		let mut state = self.state.clone();
 		let ko = if let Action::Place(i) = mov.action {
 			state.place_stone(i, mov.player);
