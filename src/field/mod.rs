@@ -12,8 +12,8 @@ struct Board {
 	adj: BoolMat,
 	black_stones: BoolVec,
 	white_stones: BoolVec,
-	black_connections: Option<BoolMat>,
-	white_connections: Option<BoolMat>,
+	black_connections: BoolMat,
+	white_connections: BoolMat,
 }
 
 impl Board {
@@ -29,8 +29,8 @@ impl Board {
 		}
 		let black_stones = BoolVec::falses(size);
 		let white_stones = BoolVec::falses(size);
-		let black_connections = Some(BoolMat::falses(size, size));
-		let white_connections = Some(BoolMat::falses(size, size));
+		let black_connections = BoolMat::falses(size, size);
+		let white_connections = BoolMat::falses(size, size);
 		Board {
 			size,
 			adj,
@@ -45,20 +45,18 @@ impl Board {
 		adj: &BoolMat,
 		i: usize,
 		stones: &mut BoolVec,
-		col_connections: &mut Option<BoolMat>,
+		connections: &mut BoolMat,
 	) {
 		stones.set(i);
-		if let Some(old_connections) = col_connections {
-			let mult = BoolMat::mult;
-			let diag = BoolMat::from_diag(stones);
-			let restricted_adj = mult(&diag, &mult(adj, &diag));
-			let new_connections = mult(
-				&old_connections,
-				&mult(&restricted_adj, &old_connections),
-			);
-			// TODO: Refactor this stuff. This is stupid.
-			old_connections.assign(new_connections);
-		}
+		let mult = BoolMat::mult;
+		let diag = BoolMat::from_diag(stones);
+		let restricted_adj = mult(&diag, &mult(adj, &diag));
+		let new_connections = mult(
+			&connections,
+			&mult(&restricted_adj, &connections),
+		);
+		// TODO: Refactor this stuff. This is stupid.
+		connections.assign(new_connections);
 	}
 
 	fn place(&mut self, i: usize, col: Color) {
@@ -75,6 +73,48 @@ impl Board {
 				&mut self.white_stones,
 				&mut self.white_connections,
 			),
+		}
+	}
+
+	fn living_stones(
+		adj: &BoolMat,
+		connections: &BoolMat,
+		free: &BoolVec,
+	) -> BoolVec {
+		BoolMat::mult(&adj, &connections).eval(free)
+	}
+
+	fn kill(&mut self, col: Color) {
+		let free =
+			BoolVec::union(&self.black_stones, &self.white_stones)
+				.complement();
+		let living = match col {
+			Color::Black => Board::living_stones(
+				&self.adj,
+				&self.black_connections,
+				&free,
+			),
+			Color::White => Board::living_stones(
+				&self.adj,
+				&self.white_connections,
+				&free,
+			),
+		};
+		match col {
+			Color::Black => {
+				self.black_stones = living;
+				self.black_connections = BoolMat::mult(
+					&self.black_connections,
+					&BoolMat::from_diag(&self.black_stones),
+				)
+			}
+			Color::White => {
+				self.white_stones = living;
+				self.white_connections = BoolMat::mult(
+					&self.white_connections,
+					&BoolMat::from_diag(&self.white_stones),
+				)
+			}
 		}
 	}
 }

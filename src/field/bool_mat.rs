@@ -117,6 +117,41 @@ impl BoolVec {
 			all_indices.filter(|n| self.get(*n)).collect();
 		res.into_iter()
 	}
+
+	pub fn intersection(a: &BoolVec, b: &BoolVec) -> BoolVec {
+		assert_eq!(a.len(), b.len());
+		let len = a.len();
+		let mut res = BoolVec::falses(len);
+		for i in 0..len {
+			if a.get(i) & b.get(i) {
+				res.set(i);
+			}
+		}
+		res
+	}
+
+	pub fn union(a: &BoolVec, b: &BoolVec) -> BoolVec {
+		assert_eq!(a.len(), b.len());
+		let len = a.len();
+		let mut res = BoolVec::falses(len);
+		for i in 0..len {
+			if a.get(i) | b.get(i) {
+				res.set(i);
+			}
+		}
+		res
+	}
+
+	pub fn complement(&self) -> BoolVec {
+		let len = self.len();
+		let mut res = BoolVec::falses(len);
+		for i in 0..len {
+			if !self.get(i) {
+				res.set(i);
+			}
+		}
+		res
+	}
 }
 
 #[cfg(test)]
