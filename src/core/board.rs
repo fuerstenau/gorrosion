@@ -1,4 +1,4 @@
-use super::bool_mat::*;
+use core::util::bool_mat::*;
 
 pub trait Board: Clone + Eq {
 	type Index: Copy;
