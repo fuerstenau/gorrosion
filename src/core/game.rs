@@ -1,7 +1,7 @@
 use core::board::Board;
 use core::bool_mat::*;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 struct PlayerState<'a, T: 'a + Board> {
 	board: &'a T,
 	stones: BoolVec,
@@ -41,6 +41,11 @@ impl<'a, T: Board> PlayerState<'a, T> {
 			&BoolMat::from_diag(&self.stones),
 		);
 	}
+
+	fn kill_dead(&mut self, liberties: &BoolVec) {
+		let dead = self.survivors(liberties).complement();
+		self.kill(&dead);
+	}
 }
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -49,7 +54,16 @@ enum Color {
 	White,
 }
 
-#[derive(Clone)]
+impl Color {
+	fn other(&self) -> Color {
+		match self {
+			Color::Black => Color::White,
+			Color::White => Color::Black,
+		}
+	}
+}
+
+#[derive(Clone, PartialEq, Eq)]
 struct GameState<'a, T: 'a + Board> {
 	black: PlayerState<'a, T>,
 	white: PlayerState<'a, T>,
@@ -57,6 +71,17 @@ struct GameState<'a, T: 'a + Board> {
 }
 
 impl<'a, T: 'a + Board> GameState<'a, T> {
+	fn free(&self) -> BoolVec {
+		let black = &self.black.stones;
+		let white = &self.white.stones;
+		BoolVec::union(black, white).complement()
+	}
+
+	fn kill_dead(&mut self, color: Color) {
+		let liberties = self.free();
+		self.player_state(color).kill_dead(&liberties);
+	}
+
 	fn player_state(&mut self, color: Color) -> &mut PlayerState<'a, T> {
 		match color {
 			Color::Black => &mut self.black,
@@ -96,12 +121,6 @@ struct Rules {
 }
 
 impl<'a, T: 'a + Board> GameState<'a, T> {
-	fn free(&self) -> BoolVec {
-		let black = &self.black.stones;
-		let white = &self.white.stones;
-		BoolVec::union(black, white).complement()
-	}
-
 	fn legal_move(&self, mov: Move<T::Index>, rules: LocalRules) -> bool {
 		let has_turn =
 			(!rules.alternate_play) | (mov.player == self.to_move);
@@ -142,7 +161,7 @@ impl<'a, T: 'a + Board> GameState<'a, T> {
 
 struct GameNode<'a, T: 'a + Board> {
 	state: GameState<'a, T>,
-	prev_state: Option<&'a GameNode<'a, T>>,
+	prev_node: Option<&'a GameNode<'a, T>>,
 	last_move: Option<Move<T::Index>>,
 	white_ghosts: BoolVec,
 	black_ghosts: BoolVec,
@@ -152,10 +171,16 @@ impl<'a, T: 'a + Board> GameNode<'a, T> {
 	fn legal_move(&self, mov: Move<T::Index>, rules: Rules) -> bool {
 		let locally_legal =
 			self.state.legal_move(mov, rules.local_rules);
-		let mut state = self.state.clone();
+		let mut next_state = self.state.clone();
 		let ko = if let Action::Place(i) = mov.action {
-			state.place_stone(i, mov.player);
-			true
+			next_state.place_stone(i, mov.player);
+			next_state.kill_dead(mov.player.other());
+			next_state.kill_dead(mov.player);
+			if let Some(prev) = self.prev_node {
+				prev.state == next_state
+			} else {
+				false
+			}
 		} else {
 			false
 		};
