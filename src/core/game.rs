@@ -1,5 +1,6 @@
 use core::board::Board;
-use core::util::bool_mat::*;
+use core::util::bool_mat::BoolMat;
+use core::util::bool_vec::BoolVec;
 
 #[derive(Clone, PartialEq, Eq)]
 struct PlayerState<'a, T: 'a + Board> {
