@@ -42,6 +42,8 @@ impl BoolMat {
 		BoolMat { height, width, contents }
 	}
 
+	// TODO: Implement id constructor
+
 	pub fn set(&mut self, i: usize, k: usize) {
 		self.contents.set(i * self.width + k);
 	}
