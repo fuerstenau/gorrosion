@@ -42,6 +42,17 @@ where
 	}
 
 	/// Create a new Boolean vector with all positions being unset.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// # use gorrosion::core::util::bool_vec::BoolVec;
+	/// let indexer = 17;
+	/// let falses = BoolVec::falses(indexer);
+	/// for i in 0..17 {
+	///	assert_eq!(falses[i], false);
+	/// }
+	/// ```
 	pub fn falses(indexer: I) -> Self {
 		let size = indexer.range();
 		let data = vec![false; size];
@@ -49,6 +60,17 @@ where
 	}
 
 	/// Create a new Boolean vector with all positions being set.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// # use gorrosion::core::util::bool_vec::BoolVec;
+	/// let indexer = 23;
+	/// let trues = BoolVec::trues(indexer);
+	/// for i in 0..23 {
+	///	assert_eq!(trues[i], true);
+	/// }
+	/// ```
 	pub fn trues(indexer: I) -> Self {
 		let size = indexer.range();
 		let data = vec![true; size];
@@ -87,22 +109,66 @@ where
 	}
 
 	/// Intersect two vectors considered as sets.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// # use gorrosion::core::util::bool_vec::BoolVec;
+	/// let indexer = 3;
+	/// let a = BoolVec::from_data(vec![true, true, false], indexer);
+	/// let b = BoolVec::from_data(vec![false, true, true], indexer);
+	/// let c = BoolVec::from_data(vec![false, true, false], indexer);
+	/// assert_eq!(a.intersection(&b), c);
+	/// ```
 	pub fn intersection(&self, other: &Self) -> Self {
 		self & other
 	}
 
 	/// Unite two vectors considered as sets.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// # use gorrosion::core::util::bool_vec::BoolVec;
+	/// let indexer = 3;
+	/// let a = BoolVec::from_data(vec![false, true, false], indexer);
+	/// let b = BoolVec::from_data(vec![false, false, true], indexer);
+	/// let c = BoolVec::from_data(vec![false, true, true], indexer);
+	/// assert_eq!(a.union(&b), c);
+	/// ```
 	pub fn union(&self, other: &Self) -> Self {
 		self | other
 	}
 
 	/// Take the complement of a vector
 	/// considered as subset of the all-true vector of the same length.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// # use gorrosion::core::util::bool_vec::BoolVec;
+	/// let indexer = 3;
+	/// let a = BoolVec::from_data(vec![true, true, false], indexer);
+	/// let b = BoolVec::from_data(vec![false, false, true], indexer);
+	/// assert_eq!(a.complement(), b);
+	/// ```
 	pub fn complement(&self) -> Self {
 		!self
 	}
 
 	/// Change the way the vector is indexed.
+	///
+	/// # Examples
+	///
+	/// ```
+	/// # use gorrosion::core::util::bool_vec::BoolVec;
+	/// # use gorrosion::core::util::indexer;
+	/// let rect = indexer::Rect::new(2, 3);
+	/// let num = 6;
+	/// let vec_rect = BoolVec::falses(rect);
+	/// let vec_num = BoolVec::falses(num);
+	/// assert_eq!(vec_num, vec_rect.reindex(num));
+	/// ```
 	pub fn reindex<J>(self, indexer: J) -> BoolVec<J>
 	where
 		J: Indexer,
@@ -148,5 +214,45 @@ where
 
 	fn not(self) -> Self::Output {
 		BoolVec::bit_map_unary(self, Not::not)
+	}
+}
+
+// TODO: Only keep until code coverage tools can handle doc tests.
+#[cfg(test)]
+mod tests {
+	use super::BoolVec;
+	use core::util::indexer;
+
+	#[test]
+	fn doc_tests() {
+	let indexer = 17;
+	let falses = BoolVec::falses(indexer);
+	for i in 0..17 {
+		assert_eq!(falses[i], false);
+	}
+	let indexer = 23;
+	let trues = BoolVec::trues(indexer);
+	for i in 0..23 {
+		assert_eq!(trues[i], true);
+	}
+	let indexer = 3;
+	let a = BoolVec::from_data(vec![true, true, false], indexer);
+	let b = BoolVec::from_data(vec![false, true, true], indexer);
+	let c = BoolVec::from_data(vec![false, true, false], indexer);
+	assert_eq!(a.intersection(&b), c);
+	let indexer = 3;
+	let a = BoolVec::from_data(vec![false, true, false], indexer);
+	let b = BoolVec::from_data(vec![false, false, true], indexer);
+	let c = BoolVec::from_data(vec![false, true, true], indexer);
+	assert_eq!(a.union(&b), c);
+	let indexer = 3;
+	let a = BoolVec::from_data(vec![true, true, false], indexer);
+	let b = BoolVec::from_data(vec![false, false, true], indexer);
+	assert_eq!(a.complement(), b);
+	let rect = indexer::Rect::new(2, 3);
+	let num = 6;
+	let vec_rect = BoolVec::falses(rect);
+	let vec_num = BoolVec::falses(num);
+	assert_eq!(vec_num, vec_rect.reindex(num));
 	}
 }
