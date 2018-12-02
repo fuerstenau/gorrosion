@@ -35,6 +35,51 @@ pub trait Indexer: Eq {
 	}
 }
 
+/// Index the singleton in the obvious (and pretty much only) way.
+impl Indexer for () {
+	type Index = ();
+
+	fn to_num(&self, i: Self::Index) -> usize {
+		0
+	}
+
+	fn to_index(&self, n: usize) -> Self::Index {
+		assert!(self.in_range(n));
+	}
+
+	fn range(&self) -> usize {
+		1
+	}
+
+	fn is_valid(&self, i: Self::Index) -> bool {
+		true
+	}
+}
+
+/// With the usual identification $n+1 = \{0, \dots, n\}$,
+/// we know how an integer should provide indices.
+impl Indexer for usize {
+	type Index = usize;
+
+	fn to_num(&self, i: Self::Index) -> usize {
+		assert!(self.is_valid(i));
+		i
+	}
+
+	fn to_index(&self, n: usize) -> Self::Index {
+		assert!(self.in_range(n));
+		n
+	}
+
+	fn range(&self) -> usize {
+		self
+	}
+
+	fn is_valid(&self, i: Self::Index) -> bool {
+		self.in_range(i)
+	}
+}
+
 /// Index a rectangle, traversing it row by row.
 #[derive(PartialEq, Eq)]
 pub struct Rect {
@@ -70,27 +115,6 @@ impl Indexer for Rect {
 
 	fn is_valid(&self, (j, k): Self::Index) -> bool {
 		(j < self.height) & (k < self.width)
-	}
-}
-
-/// Index the singleton in the obvious (and pretty much only) way.
-impl Indexer for () {
-	type Index = ();
-
-	fn to_num(&self, i: Self::Index) -> usize {
-		0
-	}
-
-	fn to_index(&self, n: usize) -> Self::Index {
-		assert!(self.in_range(n));
-	}
-
-	fn range(&self) -> usize {
-		1
-	}
-
-	fn is_valid(&self, i: Self::Index) -> bool {
-		true
 	}
 }
 

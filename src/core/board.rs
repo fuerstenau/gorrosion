@@ -1,147 +1,101 @@
+use self::indexer::Indexer;
 use core::util::bool_mat::BoolMat;
-use core::util::bool_vec::BoolVec;
+use core::util::indexer;
 
 pub trait Board: Clone + Eq {
-	type Index: Copy;
+	type I: Indexer;
 
-	fn index_to_num(&self, i: Self::Index) -> usize;
-	fn num_to_index(&self, n: usize) -> Self::Index;
+	fn adjacencies(&self) -> &BoolMat<Self::I, Self::I>;
 
-	fn size(&self) -> usize;
-	fn adjacencies(&self) -> &BoolMat;
-
-	fn is_hoshi(&self, i: Self::Index) -> bool;
+	fn is_hoshi(&self, i: <Self::I as Indexer>::Index) -> bool;
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct Graph {
-	size: usize,
-	adj: BoolMat,
+pub struct Graph<'a> {
+	adj: BoolMat<'a, usize, usize>,
 }
 
-impl Board for Graph {
-	type Index = usize;
+impl<'a> Board for Graph<'a> {
+	type I = usize;
 
-	fn index_to_num(&self, n: Self::Index) -> usize {
-		n
-	}
-
-	fn num_to_index(&self, n: usize) -> Self::Index {
-		n
-	}
-
-	fn size(&self) -> usize {
-		self.size
-	}
-
-	fn adjacencies(&self) -> &BoolMat {
+	fn adjacencies(&self) -> &BoolMat<Self::I, Self::I> {
 		&self.adj
 	}
 
-	fn is_hoshi(&self, _i: Self::Index) -> bool {
+	fn is_hoshi(&self, _i: <Self::I as Indexer>::Index) -> bool {
 		false
 	}
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct Rect {
-	height: usize,
-	width: usize,
-	graph: Graph,
+pub struct Rect<'a> {
+	indexer: &'a indexer::Rect,
+	graph: Graph<'a>,
 }
 
-impl Rect {
-	fn index_to_num(width: usize, (j, k): (usize, usize)) -> usize {
-		j * width + k
-	}
-
-	pub fn new(height: usize, width: usize) -> Rect {
-		let size = width * height;
-		let mut adj = BoolMat::from_diag(&BoolVec::trues(size));
-		let index_to_num = |j, k| Rect::index_to_num(width, (j, k));
+impl<'a> Rect<'a> {
+	pub fn new(height: usize, width: usize) -> Rect<'a> {
+		let indexer = indexer::Rect::new(height, width);
+		let mut adj = BoolMat::identity(indexer);
+		let sym_set = |a, b| {
+			adj[(a, b)] = true;
+			adj[(b, a)] = true;
+		};
 		for j in 0..height {
 			for k in 1..width {
-				let a = index_to_num(j, k - 1);
-				let b = index_to_num(j, k);
-				adj.sym_set(a, b);
+				let a = indexer.to_num(j, k - 1);
+				let b = indexer.to_num(j, k);
+				sym_set(a, b);
 			}
 		}
 		for j in 1..height {
 			for k in 0..width {
-				let a = index_to_num(j - 1, k);
-				let b = index_to_num(j, k);
-				adj.sym_set(a, b);
+				let a = indexer.to_num(j - 1, k);
+				let b = indexer.to_num(j, k);
+				sym_set(a, b);
 			}
 		}
-		let graph = Graph { size, adj };
-		Rect {
-			height,
-			width,
-			graph,
-		}
+		let graph = Graph { adj };
+		Rect { indexer, graph }
 	}
 }
 
-impl Board for Rect {
-	type Index = (usize, usize);
+impl<'a> Board for Rect<'a> {
+	type I = indexer::Rect;
 
-	fn index_to_num(&self, i: Self::Index) -> usize {
-		Rect::index_to_num(self.width, i)
-	}
-
-	fn num_to_index(&self, n: usize) -> Self::Index {
-		let j = n / self.width;
-		let k = n - j * self.width;
-		(j, k)
-	}
-
-	fn size(&self) -> usize {
-		self.graph.size()
-	}
-
-	fn adjacencies(&self) -> &BoolMat {
+	fn adjacencies(&self) -> &BoolMat<Self::I, Self::I> {
 		self.graph.adjacencies()
 	}
 
-	fn is_hoshi(&self, _i: Self::Index) -> bool {
+	fn is_hoshi(&self, _i: <Self::I as Indexer>::Index) -> bool {
 		false
 	}
 }
 
 #[derive(Clone, PartialEq, Eq)]
-pub struct Square {
-	rect: Rect,
+pub struct Square<'a> {
+	rect: Rect<'a>,
 }
 
-impl Square {
-	pub fn new(length: usize) -> Square {
+impl<'a> Square<'a> {
+	pub fn new(length: usize) -> Square<'a> {
 		let rect = Rect::new(length, length);
 		Square { rect }
 	}
 }
 
-impl Board for Square {
-	type Index = (usize, usize);
+impl<'a> Board for Square<'a> {
+	type I = indexer::Rect;
 
-	fn index_to_num(&self, i: Self::Index) -> usize {
-		self.rect.index_to_num(i)
-	}
-
-	fn num_to_index(&self, n: usize) -> Self::Index {
-		self.rect.num_to_index(n)
-	}
-
-	fn size(&self) -> usize {
-		self.rect.size()
-	}
-
-	fn adjacencies(&self) -> &BoolMat {
+	fn adjacencies(&self) -> &BoolMat<Self::I, Self::I> {
 		&self.rect.adjacencies()
 	}
 
-	fn is_hoshi(&self, _i: Self::Index) -> bool {
+	fn is_hoshi(&self, _i: <Self::I as Indexer>::Index) -> bool {
 		false
 	}
 }
 
 // TODO: Implement the three standard boards with their hoshi
+// TODO: Boards need to provide more information about their hoshi
+//       than whether a given moku is one.
