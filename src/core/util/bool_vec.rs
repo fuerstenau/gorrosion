@@ -1,5 +1,5 @@
 use core::util::indexer::Indexer;
-use std::ops::{BitAnd, BitOr, Not};
+use std::ops::{BitAnd, BitOr, Index, IndexMut, Not};
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct BoolVec<'a, I: Indexer> {
@@ -7,47 +7,35 @@ pub struct BoolVec<'a, I: Indexer> {
 	indexer: &'a I,
 }
 
-// TODO: There is some renaming to be done.
-// TODO: Implement a Set trait.
+impl<'a, I: Indexer> Index<I::Index> for BoolVec<'a, I> {
+	type Output = bool;
+
+	fn index(&self, i: I::Index) -> &Self::Output {
+		self.data[self.indexer.to_num(i)]
+	}
+}
+
+impl<'a, I: Indexer> IndexMut<I::Index> for BoolVec<'a, I> {
+	fn index_mut(&mut self, i: I::Index) -> &mut Self::Output {
+		self.data[self.indexer.to_num(i)]
+	}
+}
+
+// TODO: Allow iteration over set / true positions?
 impl<'a, I> BoolVec<'a, I> {
 	/// Create a new boolean vector with all positions being unset.
-	pub fn falses(indexer: &I) -> BoolVec {
+	pub fn falses(indexer: &I) -> Self {
 		let size = indexer.range();
 		let data = vec![false; size];
 		BoolVec { data, indexer }
 	}
 
 	/// Create a new boolean vector with all positions being set.
-	pub fn trues(indexer: &I) -> BoolVec {
+	pub fn trues(indexer: &I) -> Self {
 		let size = indexer.range();
 		let data = vec![true; size];
 		BoolVec { data, indexer }
 	}
-
-	/// This is deprecated.
-	pub fn len(&self) -> usize {
-		self.data.len()
-	}
-
-	/// Retrieve an entry.
-	pub fn get(&self, i: I::Index) -> bool {
-		self.data[self.indexer.to_num(i)]
-	}
-
-	/// Set an entry (to “true”).
-	pub fn set(&mut self, i: usize) {
-		self.data[self.indexer.to_num(i)] = true;
-	}
-
-	/// Get an iterator over all set / true positions.
-	pub fn set_positions(&self) -> impl Iterator<Item = I::Index> {
-		let len = self.data.len();
-		let all_indices = 0..len;
-		let res: Vec<usize> =
-			all_indices.filter(|n| self.get(*n)).map(self.indexer.to_index).collect();
-		res.into_iter()
-	}
-
 
 	/// Consider a vector as a map into the Booleans
 	/// and apply a unary operation pointwise.
@@ -62,9 +50,13 @@ impl<'a, I> BoolVec<'a, I> {
 		BoolVec { data, indexer }
 	}
 
-	/// Consider two vector as maps into the Booleans
+	/// Consider two vectors as maps into the Booleans
 	/// and apply a binary operation pointwise.
-	fn bit_map_binary<F: Fn(bool) -> bool>(&self, other: &Self, op: F) -> Self {
+	fn bit_map_binary<F: Fn(bool) -> bool>(
+		&self,
+		other: &Self,
+		op: F,
+	) -> Self {
 		assert_eq!(self.indexer, other.indexer);
 		let indexer = self.indexer;
 		let size = self.data.len();
@@ -87,12 +79,12 @@ impl<'a, I> BoolVec<'a, I> {
 
 	/// Take the complement of a vector
 	/// considered as subset of the all-true vector of the same length.
-	pub fn complement(&self) -> BoolVec {
+	pub fn complement(&self) -> Self {
 		!self
 	}
 }
 
-impl BitAnd for BoolVec {
+impl<'a, I> BitAnd for BoolVec<'a, I> {
 	type Output = Self;
 
 	fn bitand(&self, &other: Self) -> Self {
@@ -100,7 +92,7 @@ impl BitAnd for BoolVec {
 	}
 }
 
-impl BitOr for BoolVec {
+impl<'a, I> BitOr for BoolVec<'a, I> {
 	type Output = Self;
 
 	fn bitor(&self, &other: Self) -> Self {
@@ -108,7 +100,7 @@ impl BitOr for BoolVec {
 	}
 }
 
-impl Not for BoolVec {
+impl<'a, I> Not for BoolVec<'a, I> {
 	type Output = Self;
 
 	fn not(&self) -> Self {

@@ -73,12 +73,33 @@ impl Indexer for Rect {
 	}
 }
 
+/// Index the singleton in the obvious (and pretty much only) way.
+impl Indexer for () {
+	type Index = ();
+
+	fn to_num(&self, i: Self::Index) -> usize {
+		0
+	}
+
+	fn to_index(&self, n: usize) -> Self::Index {
+		assert!(self.in_range(n));
+	}
+
+	fn range(&self) -> usize {
+		1
+	}
+
+	fn is_valid(&self, i: Self::Index) -> bool {
+		true
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	#[test]
 	fn rect() {
-		use super::Rect;
 		use super::Indexer;
+		use super::Rect;
 		let h = 7;
 		let w = 17;
 		let rect = Rect::new(h, w);
@@ -92,8 +113,8 @@ mod tests {
 	#[test]
 	#[should_panic]
 	fn rect_index_oob() {
-		use super::Rect;
 		use super::Indexer;
+		use super::Rect;
 		let h = 2;
 		let w = 3;
 		let rect = Rect::new(h, w);
@@ -103,8 +124,8 @@ mod tests {
 	#[test]
 	#[should_panic]
 	fn rect_num_oob() {
-		use super::Rect;
 		use super::Indexer;
+		use super::Rect;
 		let h = 2;
 		let w = 3;
 		let rect = Rect::new(h, w);
