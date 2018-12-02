@@ -93,7 +93,7 @@ mod tests {
 		let w = 3;
 		let rect = Rect::new(h, w);
 		rect.to_num((2, 2));
-	}
+	} // LCOV_EXCL_LINE
 
 	#[test]
 	#[should_panic]
@@ -104,5 +104,5 @@ mod tests {
 		let w = 3;
 		let rect = Rect::new(h, w);
 		rect.to_index(rect.range());
-	}
+	} // LCOV_EXCL_LINE
 }
