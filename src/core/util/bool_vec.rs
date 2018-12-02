@@ -11,7 +11,7 @@ use std::ops::{BitAnd, BitOr, Index, IndexMut, Not};
 /// we do not index these over integers directly
 /// but use an `Indexer`.
 #[derive(Clone, Eq, PartialEq, Debug)]
-pub struct BoolVec<'a, I: Indexer> {
+pub struct BoolVec<'a, I: 'a + Indexer> {
 	data: Vec<bool>,
 	indexer: &'a I,
 }
@@ -31,7 +31,10 @@ impl<'a, I: Indexer> IndexMut<I::Index> for BoolVec<'a, I> {
 }
 
 // TODO: Allow iteration over set / true positions?
-impl<'a, I> BoolVec<'a, I> {
+impl<'a, I> BoolVec<'a, I>
+where
+	I: Indexer,
+{
 	/// Create a new Boolean vector with all positions being unset.
 	pub fn falses(indexer: &I) -> Self {
 		let size = indexer.range();
@@ -93,26 +96,35 @@ impl<'a, I> BoolVec<'a, I> {
 	}
 }
 
-impl<'a, I> BitAnd for BoolVec<'a, I> {
+impl<'a, I> BitAnd for &'a BoolVec<'a, I>
+where
+	I: Indexer,
+{
 	type Output = Self;
 
-	fn bitand(&self, &other: Self) -> Self {
+	fn bitand(self, other: Self) -> Self {
 		BoolVec::bit_map_binary(self, other, BitAnd::bitand)
 	}
 }
 
-impl<'a, I> BitOr for BoolVec<'a, I> {
+impl<'a, I> BitOr for &'a BoolVec<'a, I>
+where
+	I: Indexer,
+{
 	type Output = Self;
 
-	fn bitor(&self, &other: Self) -> Self {
+	fn bitor(self, other: Self) -> Self {
 		BoolVec::bit_map_binary(self, other, BitOr::bitor)
 	}
 }
 
-impl<'a, I> Not for BoolVec<'a, I> {
+impl<'a, I> Not for &'a BoolVec<'a, I>
+where
+	I: Indexer,
+{
 	type Output = Self;
 
-	fn not(&self) -> Self {
+	fn not(self) -> Self {
 		BoolVec::bit_map_unary(self, Not::not)
 	}
 }

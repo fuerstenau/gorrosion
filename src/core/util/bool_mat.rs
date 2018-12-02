@@ -14,7 +14,7 @@ use std::ops::{Index, IndexMut, Mul};
 /// Since not all matrices represent endomorphisms,
 /// rows and columns each have their own `Indexer`.
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct BoolMat<'a, J: Indexer, K: Indexer> {
+pub struct BoolMat<'a, J: 'a + Indexer, K: 'a + Indexer> {
 	rows: &'a J,
 	columns: &'a K,
 	contents: BoolVec<'a, indexer::Rect>,
@@ -47,7 +47,11 @@ where
 	}
 }
 
-impl<'a, J, K> BoolMat<'a, J, K> {
+impl<'a, J, K> BoolMat<'a, J, K>
+where
+	J: Indexer,
+	K: Indexer,
+{
 	/// Create a new Boolean matrix with all entries unset.
 	pub fn falses(rows: &J, columns: &K) -> Self {
 		let rect = indexer::Rect::new(rows.range(), columns.range());
@@ -80,7 +84,10 @@ impl<'a, J, K> BoolMat<'a, J, K> {
 	}
 }
 
-impl<'a, I> BoolMat<'a, I, ()> {
+impl<'a, I> BoolMat<'a, I, ()>
+where
+	I: Indexer,
+{
 	/// Take a vector and write it as column,
 	/// i.e. a matrix where the columns are indexed by the unit type.
 	fn column(vec: &BoolVec<'a, I>) -> Self {
@@ -97,7 +104,10 @@ impl<'a, I> BoolMat<'a, I, ()> {
 	}
 }
 
-impl<'a, I> BoolMat<'a, I, I> {
+impl<'a, I> BoolMat<'a, I, I>
+where
+	I: Indexer,
+{
 	/// Create a diagonal matrix
 	/// whose diagonal entries are given by a vector.
 	pub fn from_diag(diag: &BoolVec<'a, I>) -> Self {
@@ -116,10 +126,15 @@ impl<'a, I> BoolMat<'a, I, I> {
 	}
 }
 
-impl<'a, J, K, L> Mul<BoolMat<'a, K, L>> for BoolMat<'a, J, K> {
+impl<'a, J, K, L> Mul<&'a BoolMat<'a, K, L>> for &'a BoolMat<'a, J, K>
+where
+	J: Indexer,
+	K: Indexer,
+	L: Indexer,
+{
 	type Output = BoolMat<'a, J, L>;
 
-	fn mul(&self, &other: BoolMat<'a, K, L>) -> Self::Output {
+	fn mul(self, other: &BoolMat<'a, K, L>) -> Self::Output {
 		assert_eq!(self.columns, other.rows);
 		let len = self.columns.range();
 		let rows = self.rows;
