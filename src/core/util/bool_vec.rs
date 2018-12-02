@@ -10,10 +10,21 @@ use std::ops::{BitAnd, BitOr, Index, IndexMut, Not};
 /// For convenience and a poor emulation of type-checking
 /// we do not index these over integers directly
 /// but use an `Indexer`.
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Eq, PartialEq, Debug)]
 pub struct BoolVec<'a, I: 'a + Indexer> {
 	data: Vec<bool>,
 	indexer: &'a I,
+}
+
+impl<'a, I> Clone for BoolVec<'a, I>
+where
+	I: Indexer,
+{
+	fn clone(&self) -> Self {
+		let data = self.data.clone();
+		let indexer = self.indexer;
+		BoolVec { data, indexer }
+	}
 }
 
 impl<'a, I: Indexer> Index<I::Index> for BoolVec<'a, I> {
@@ -35,6 +46,12 @@ impl<'a, I> BoolVec<'a, I>
 where
 	I: Indexer,
 {
+	/// Wrap an existing Vec<bool> into a Boolen vector.
+	pub fn from_data(data: Vec<bool>, indexer: &'a I) -> BoolVec<'a, I> {
+		assert_eq!(data.len(), indexer.range());
+		BoolVec { data, indexer }
+	}
+
 	/// Create a new Boolean vector with all positions being unset.
 	pub fn falses(indexer: &'a I) -> Self {
 		let size = indexer.range();

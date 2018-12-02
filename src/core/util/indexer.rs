@@ -41,7 +41,7 @@ pub trait Indexer: Eq + Debug {
 impl Indexer for () {
 	type Index = ();
 
-	fn to_num(&self, i: Self::Index) -> usize {
+	fn to_num(&self, _i: Self::Index) -> usize {
 		0
 	}
 
@@ -53,7 +53,7 @@ impl Indexer for () {
 		1
 	}
 
-	fn is_valid(&self, i: Self::Index) -> bool {
+	fn is_valid(&self, _i: Self::Index) -> bool {
 		true
 	}
 }
@@ -83,7 +83,7 @@ impl Indexer for usize {
 }
 
 /// Index a rectangle, traversing it row by row.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Rect {
 	height: usize,
 	width: usize,

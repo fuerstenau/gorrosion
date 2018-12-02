@@ -7,14 +7,27 @@ use core::util::indexer::Indexer;
 // TODO: There is some renaming to be done.
 // TODO: We might be able to get rid of a few of those lifetimes.
 
-// TODO: #[derive(Clone, PartialEq, Eq)]
 #[derive(PartialEq, Eq)]
 struct PlayerState<'a, 'board: 'a, T: 'board + Board> {
 	board: &'board T,
 	stones: BoolVec<'board, T::I>,
 	connections: BoolMat<'a, 'board, 'board, T::I, T::I>,
-	aga_captures: usize,
-	captures: usize,
+}
+
+impl<'a, 'board, T> Clone for PlayerState<'a, 'board, T>
+where
+	T: Board,
+{
+	fn clone(&self) -> Self {
+		let board = self.board;
+		let stones = self.stones.clone();
+		let connections = self.connections.clone();
+		PlayerState {
+			board,
+			stones,
+			connections,
+		}
+	}
 }
 
 impl<'a, 'board, T> PlayerState<'a, 'board, T>
@@ -72,14 +85,33 @@ impl Color {
 	}
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
 struct GameState<'a, 'board: 'a, T: 'board + Board> {
 	black: PlayerState<'a, 'board, T>,
 	white: PlayerState<'a, 'board, T>,
 	to_move: Color,
 }
 
-impl<'a, 'board: 'a, T: 'board + Board> GameState<'a, 'board, T> {
+impl<'a, 'board, T> Clone for GameState<'a, 'board, T>
+where
+	T: Board,
+{
+	fn clone(&self) -> Self {
+		let black = self.black.clone();
+		let white = self.white.clone();
+		let to_move = self.to_move;
+		GameState {
+			black,
+			white,
+			to_move,
+		}
+	}
+}
+
+impl<'a, 'board: 'a, T> GameState<'a, 'board, T>
+where
+	T: Board,
+{
 	fn free(&self) -> BoolVec<'board, T::I> {
 		let black = &self.black.stones;
 		let white = &self.white.stones;
@@ -106,6 +138,13 @@ impl<'a, 'board: 'a, T: 'board + Board> GameState<'a, 'board, T> {
 	}
 }
 
+// TODO: The following implementation feels more idiomatic
+//       than the actual implementation following afterwards.
+//       However, then rustc refuses to place the Copy marker on Action.
+//       This feels like a bug and should be reported,
+//       even if only to learn the errors of our ways.
+/*
+
 #[derive(Copy, Clone)]
 enum Action<T: Board> {
 	Pass,
@@ -113,11 +152,26 @@ enum Action<T: Board> {
 	Place(<T::I as Indexer>::Index),
 }
 
-// FIXME: #[derive(Copy, Clone)]
-#[derive(Clone)]
-struct Move<T: Board> {
+#[derive(Copy, Clone)]
+struct Move<T: Board>
+where Action<T>: Copy {
 	player: Color,
 	action: Action<T>,
+}
+
+*/
+
+#[derive(Copy, Clone)]
+enum Action<Index: Copy> {
+	Pass,
+	Resign,
+	Place(Index),
+}
+
+#[derive(Copy, Clone)]
+struct Move<T: Board> {
+	player: Color,
+	action: Action<<T::I as Indexer>::Index>,
 }
 
 struct LocalRules {

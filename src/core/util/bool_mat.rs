@@ -13,12 +13,31 @@ use std::ops::{Index, IndexMut, Mul};
 /// A matrix with values in `bool`, the two-element semi-ring.
 /// Since not all matrices represent endomorphisms,
 /// rows and columns each have their own `Indexer`.
-#[derive(Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct BoolMat<'a, 'j: 'a, 'k: 'a, J: 'j + Indexer, K: 'k + Indexer> {
 	rect: indexer::Rect,
 	rows: &'j J,
 	columns: &'k K,
 	contents: BoolVec<'a, indexer::Rect>,
+}
+
+impl<'a, 'j, 'k, J, K> Clone for BoolMat<'a, 'j, 'k, J, K>
+where
+	J: Indexer,
+	K: Indexer,
+{
+	fn clone(&self) -> Self {
+		let rect = self.rect.clone();
+		let rows = self.rows;
+		let columns = self.columns;
+		let contents = self.contents.clone();
+		BoolMat {
+			rect,
+			rows,
+			columns,
+			contents,
+		}
+	}
 }
 
 impl<'a, 'j, 'k, J, K> Index<(J::Index, K::Index)> for BoolMat<'a, 'j, 'k, J, K>
@@ -160,7 +179,7 @@ where
 		}
 		let rect = indexer::Rect::new(height, width);
 		let indexer = &rect;
-		let contents = BoolVec { indexer, data };
+		let contents = BoolVec::from_data(data, indexer);
 		BoolMat {
 			rect,
 			rows,
