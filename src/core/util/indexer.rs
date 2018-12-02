@@ -8,7 +8,7 @@
 /// The internal indices are assumed to be
 /// a contiguous chunk of non-negative integers starting at zero.
 pub trait Indexer: Eq {
-	type Index;
+	type Index: Copy;
 
 	/// Convert an external index to an internal index.
 	fn to_num(&self, index: Self::Index) -> usize;
