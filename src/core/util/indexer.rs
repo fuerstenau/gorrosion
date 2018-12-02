@@ -7,18 +7,20 @@
 /// to internally used integers and vice versa.
 /// The internal indices are assumed
 /// to be a contiguous chunk of non-negative integers starting at zero.
-pub trait Indexer<I> {
+pub trait Indexer {
+	type Index;
+
 	/// Convert an external index to an internal index.
-	fn to_num(&self, index: I) -> usize;
+	fn to_num(&self, index: Self::Index) -> usize;
 
 	/// Convert an integral index back into an external index.
-	fn to_index(&self, n: usize) -> I;
+	fn to_index(&self, n: usize) -> Self::Index;
 
 	/// Checks whether an external index is valid
 	/// to allow an indexer
 	/// to speak only about a subset of its official index set,
 	/// e.g. a $19\times19$ square instead of the entire (usize, usize).
-	fn is_valid(&self, index: I) -> bool;
+	fn is_valid(&self, index: Self::Index) -> bool;
 
 	/// A strict upper bound on the internal indices
 	/// this indexer will output.
@@ -45,14 +47,16 @@ impl Rect {
 	}
 }
 
-impl Indexer<(usize, usize)> for Rect {
-	fn to_num(&self, i: (usize, usize)) -> usize {
+impl Indexer for Rect {
+	type Index = (usize, usize);
+
+	fn to_num(&self, i: Self::Index) -> usize {
 		assert!(self.is_valid(i));
 		let (j, k) = i;
 		j * self.width + k
 	}
 
-	fn to_index(&self, n: usize) -> (usize, usize) {
+	fn to_index(&self, n: usize) -> Self::Index {
 		assert!(self.in_range(n));
 		let j = n / self.width;
 		let k = n - j * self.width;
@@ -63,7 +67,7 @@ impl Indexer<(usize, usize)> for Rect {
 		self.width * self.height
 	}
 
-	fn is_valid(&self, (j, k): (usize, usize)) -> bool {
+	fn is_valid(&self, (j, k): Self::Index) -> bool {
 		(j < self.height) & (k < self.width)
 	}
 }
