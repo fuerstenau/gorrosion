@@ -47,10 +47,7 @@ where
 		};
 	}
 
-	fn survivors(
-		&self,
-		free: &BoolVec<T::I>,
-	) -> BoolVec<T::I> {
+	fn survivors(&self, free: &BoolVec<T::I>) -> BoolVec<T::I> {
 		let adj = self.board.adjacencies();
 		let conn = &self.connections;
 		(conn * adj).eval(free)

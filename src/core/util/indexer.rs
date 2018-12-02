@@ -13,7 +13,7 @@ use std::fmt::Debug;
 //       and rather would have it accessed through references.
 //       However, this leads to lifetime problems
 //       and at the very least would require the use of rc::Rc.
-pub trait Indexer: Eq + Debug + Clone{
+pub trait Indexer: Eq + Debug + Clone {
 	type Index: Copy;
 
 	/// Convert an external index to an internal index.

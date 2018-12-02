@@ -41,24 +41,26 @@ impl Rect {
 	pub fn new(height: usize, width: usize) -> Rect {
 		let indexer = indexer::Rect::new(height, width);
 		let mut adj = BoolMat::id_matrix(indexer);
-		{let mut sym_set = |a, b| {
-			adj[(a, b)] = true;
-			adj[(b, a)] = true;
-		};
-		for j in 0..height {
-			for k in 1..width {
-				let a = (j, k - 1);
-				let b = (j, k);
-				sym_set(a, b);
+		{
+			let mut sym_set = |a, b| {
+				adj[(a, b)] = true;
+				adj[(b, a)] = true;
+			};
+			for j in 0..height {
+				for k in 1..width {
+					let a = (j, k - 1);
+					let b = (j, k);
+					sym_set(a, b);
+				}
+			}
+			for j in 1..height {
+				for k in 0..width {
+					let a = (j - 1, k);
+					let b = (j, k);
+					sym_set(a, b);
+				}
 			}
 		}
-		for j in 1..height {
-			for k in 0..width {
-				let a = (j - 1, k);
-				let b = (j, k);
-				sym_set(a, b);
-			}
-		}}
 		let graph = Graph { adj };
 		Rect { graph }
 	}

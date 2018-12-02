@@ -1,14 +1,18 @@
-//! Matrices are a the heart of finite-dimensional linear algebra
+//! Matrices are at the heart of finite-dimensional linear algebra
 //! and we, too, will use them to perform the calculations we want to do.
 //! While any matrix can be considered to be a vector,
 //! matrices have the additional structure of multiplication
-//! which allows us to change the underlying set
-//! when transforming characteristic functions.
+//! which allows us to elegantly chain linear transformations.
+//! Non-square matrices allow us to change the underlying set
+//! when applying them to characteristic functions.
 
 use self::indexer::Indexer;
 use core::util::bool_vec::BoolVec;
 use core::util::indexer;
 use std::ops::{Index, IndexMut, Mul};
+
+// TODO: There is some renaming to be done.
+//       * s/eval/apply/ ?
 
 /// A matrix with values in `bool`, the two-element semi-ring.
 /// Since not all matrices represent endomorphisms,
@@ -33,8 +37,7 @@ where
 	}
 }
 
-impl<J, K> IndexMut<(J::Index, K::Index)>
-	for BoolMat<J, K>
+impl<J, K> IndexMut<(J::Index, K::Index)> for BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
@@ -128,8 +131,7 @@ where
 }
 
 // TODO: Implement consuming versions.
-impl<'now, J, K, L> Mul<&'now BoolMat<K, L>>
-	for &'now BoolMat<J, K>
+impl<'now, J, K, L> Mul<&'now BoolMat<K, L>> for &'now BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
@@ -165,8 +167,7 @@ where
 	}
 }
 
-impl<'now, J, K, L> Mul<BoolMat<K, L>>
-	for &'now BoolMat<J, K>
+impl<'now, J, K, L> Mul<BoolMat<K, L>> for &'now BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
@@ -179,8 +180,7 @@ where
 	}
 }
 
-impl<'now, J, K, L> Mul<&'now BoolMat<K, L>>
-	for BoolMat<J, K>
+impl<'now, J, K, L> Mul<&'now BoolMat<K, L>> for BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
@@ -193,8 +193,7 @@ where
 	}
 }
 
-impl<J, K, L> Mul<BoolMat<K, L>>
-	for BoolMat<J, K>
+impl<J, K, L> Mul<BoolMat<K, L>> for BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
