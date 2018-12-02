@@ -2,12 +2,14 @@
 //! to allow for a clean abstraction of indexing vectors
 //! using these other types.
 
+use std::fmt::Debug;
+
 /// The heart of the operation.
 /// Provides the methods for converting external indices
 /// to internally used integers and vice versa.
 /// The internal indices are assumed to be
 /// a contiguous chunk of non-negative integers starting at zero.
-pub trait Indexer: Eq {
+pub trait Indexer: Eq + Debug {
 	type Index: Copy;
 
 	/// Convert an external index to an internal index.
@@ -72,7 +74,7 @@ impl Indexer for usize {
 	}
 
 	fn range(&self) -> usize {
-		self
+		*self
 	}
 
 	fn is_valid(&self, i: Self::Index) -> bool {
@@ -81,7 +83,7 @@ impl Indexer for usize {
 }
 
 /// Index a rectangle, traversing it row by row.
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 pub struct Rect {
 	height: usize,
 	width: usize,

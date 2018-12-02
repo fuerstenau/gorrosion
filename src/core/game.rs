@@ -5,47 +5,53 @@ use core::util::indexer::Indexer;
 
 // TODO: Kick out the rules into their own module.
 // TODO: There is some renaming to be done.
+// TODO: We might be able to get rid of a few of those lifetimes.
 
-#[derive(Clone, PartialEq, Eq)]
-struct PlayerState<'a, T: 'a + Board> {
-	board: &'a T,
-	stones: BoolVec<'a, T::I>,
-	connections: BoolMat<'a, T::I, T::I>,
+// TODO: #[derive(Clone, PartialEq, Eq)]
+#[derive(PartialEq, Eq)]
+struct PlayerState<'a, 'board: 'a, T: 'board + Board> {
+	board: &'board T,
+	stones: BoolVec<'board, T::I>,
+	connections: BoolMat<'a, 'board, 'board, T::I, T::I>,
 	aga_captures: usize,
 	captures: usize,
 }
 
-impl<'a, T> PlayerState<'a, T>
+impl<'a, 'board, T> PlayerState<'a, 'board, T>
 where
 	T: Board,
 {
 	fn place_stone(&mut self, i: <T::I as Indexer>::Index) {
 		self.stones[i] = true;
-		let diag = BoolMat::from_diag(&self.stones);
+		let diag = &BoolMat::from_diag(&self.stones);
 		let adj = self.board.adjacencies();
 		// We restrict ourselves to the adjacencies within our stones.
-		let adj = diag * adj * diag;
-		let conn = self.conections;
-		let new_connections = conn * adj * conn;
+		let adj = &(diag * &(adj * diag));
+		let conn = &self.connections;
+		let new_connections = conn * &(adj * conn);
 		self.connections = new_connections;
 	}
 
-	fn survivors(&self, free: &BoolVec<T::I>) -> BoolVec<T::I> {
+	fn survivors(
+		&self,
+		free: &BoolVec<'board, T::I>,
+	) -> BoolVec<'board, T::I> {
 		let adj = self.board.adjacencies();
-		BoolMat::mult(adj, &self.connections).eval(free)
+		let conn = &self.connections;
+		(conn * adj).eval(free)
 	}
 
-	fn kill(&mut self, zombies: &BoolVec<T::I>) {
+	fn kill(&mut self, zombies: &BoolVec<'board, T::I>) {
 		// The zombies infect everything in contact with them
 		let zombies = self.connections.eval(zombies);
 		// Retain all those that have not become zombies
-		self.stones = self.stones & !zombies;
+		self.stones = &self.stones & &!&zombies;
 		// Keep only the connections of the surviving groups
 		self.connections =
-			self.connections * BoolMat::from_diag(&self.stones);
+			&self.connections * &BoolMat::from_diag(&self.stones);
 	}
 
-	fn kill_dead(&mut self, liberties: &BoolVec<T::I>) {
+	fn kill_dead(&mut self, liberties: &BoolVec<'board, T::I>) {
 		let dead = self.survivors(liberties).complement();
 		self.kill(&dead);
 	}
@@ -67,14 +73,14 @@ impl Color {
 }
 
 #[derive(Clone, PartialEq, Eq)]
-struct GameState<'a, T: 'a + Board> {
-	black: PlayerState<'a, T>,
-	white: PlayerState<'a, T>,
+struct GameState<'a, 'board: 'a, T: 'board + Board> {
+	black: PlayerState<'a, 'board, T>,
+	white: PlayerState<'a, 'board, T>,
 	to_move: Color,
 }
 
-impl<'a, T: 'a + Board> GameState<'a, T> {
-	fn free(&self) -> BoolVec<T::I> {
+impl<'a, 'board: 'a, T: 'board + Board> GameState<'a, 'board, T> {
+	fn free(&self) -> BoolVec<'board, T::I> {
 		let black = &self.black.stones;
 		let white = &self.white.stones;
 		BoolVec::union(black, white).complement()
@@ -85,7 +91,10 @@ impl<'a, T: 'a + Board> GameState<'a, T> {
 		self.player_state(color).kill_dead(&liberties);
 	}
 
-	fn player_state(&mut self, color: Color) -> &mut PlayerState<'a, T> {
+	fn player_state(
+		&mut self,
+		color: Color,
+	) -> &mut PlayerState<'a, 'board, T> {
 		match color {
 			Color::Black => &mut self.black,
 			Color::White => &mut self.white,
@@ -124,7 +133,7 @@ struct Rules {
 	fixed_handicap: bool,
 }
 
-impl<'a, T: 'a + Board> GameState<'a, T> {
+impl<'a, 'board: 'a, T: 'board + Board> GameState<'a, 'board, T> {
 	fn legal_move(&self, mov: Move<T>, rules: LocalRules) -> bool {
 		let has_turn =
 			(!rules.alternate_play) | (mov.player == self.to_move);
@@ -154,7 +163,7 @@ impl<'a, T: 'a + Board> GameState<'a, T> {
 			Color::Black => (future.black, future.white),
 			Color::White => (future.white, future.black),
 		};
-		let is_free = self.free().get(player.board.index_to_num(i));
+		let is_free = self.free()[i];
 		let kills_something =
 			other.survivors(&liberties) == other.stones;
 		let is_suicide = (!kills_something)
@@ -163,15 +172,17 @@ impl<'a, T: 'a + Board> GameState<'a, T> {
 	}
 }
 
-struct GameNode<'a, T: 'a + Board> {
-	state: GameState<'a, T>,
-	prev_node: Option<&'a GameNode<'a, T>>,
+struct GameNode<'a, 'b, 'board: 'a, T: 'board + 'b + Board> {
+	state: GameState<'a, 'board, T>,
+	// TODO: Think about this triple lifetime ('b, 'b, 'b).
+	//       Is this actually the intended behaviour?
+	prev_node: Option<&'b GameNode<'b, 'b, 'b, T>>,
 	last_move: Option<Move<T>>,
-	white_ghosts: BoolVec<'a, T::I>,
-	black_ghosts: BoolVec<'a, T::I>,
+	white_ghosts: BoolVec<'board, T::I>,
+	black_ghosts: BoolVec<'board, T::I>,
 }
 
-impl<'a, T: 'a + Board> GameNode<'a, T> {
+impl<'a, 'b, 'board: 'a, T: 'board + Board> GameNode<'a, 'b, 'board, T> {
 	fn legal_move(&self, mov: Move<T>, rules: Rules) -> bool {
 		let locally_legal =
 			self.state.legal_move(mov, rules.local_rules);
