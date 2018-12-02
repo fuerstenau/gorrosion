@@ -1,6 +1,15 @@
+//! Vectors containing Boolean values are essentially sets
+//! represented by their characteristic functions.
+//! They are useful since they allow many computations
+//! to be implemented as simple linear algebra over the two-element semi-ring.
+
 use core::util::indexer::Indexer;
 use std::ops::{BitAnd, BitOr, Index, IndexMut, Not};
 
+/// A vector with values in `bool`, the two-element semi-ring.
+/// For convenience and a poor emulation of type-checking
+/// we do not index these over integers directly
+/// but use an `Indexer`.
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct BoolVec<'a, I: Indexer> {
 	data: Vec<bool>,
@@ -23,14 +32,14 @@ impl<'a, I: Indexer> IndexMut<I::Index> for BoolVec<'a, I> {
 
 // TODO: Allow iteration over set / true positions?
 impl<'a, I> BoolVec<'a, I> {
-	/// Create a new boolean vector with all positions being unset.
+	/// Create a new Boolean vector with all positions being unset.
 	pub fn falses(indexer: &I) -> Self {
 		let size = indexer.range();
 		let data = vec![false; size];
 		BoolVec { data, indexer }
 	}
 
-	/// Create a new boolean vector with all positions being set.
+	/// Create a new Boolean vector with all positions being set.
 	pub fn trues(indexer: &I) -> Self {
 		let size = indexer.range();
 		let data = vec![true; size];
