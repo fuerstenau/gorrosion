@@ -5,9 +5,9 @@
 /// The heart of the operation.
 /// Provides the methods for converting external indices
 /// to internally used integers and vice versa.
-/// The internal indices are assumed
-/// to be a contiguous chunk of non-negative integers starting at zero.
-pub trait Indexer {
+/// The internal indices are assumed to be
+/// a contiguous chunk of non-negative integers starting at zero.
+pub trait Indexer: Eq {
 	type Index;
 
 	/// Convert an external index to an internal index.
@@ -36,6 +36,7 @@ pub trait Indexer {
 }
 
 /// Index a rectangle, traversing it row by row.
+#[derive(PartialEq, Eq)]
 pub struct Rect {
 	height: usize,
 	width: usize,
