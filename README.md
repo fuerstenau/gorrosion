@@ -14,6 +14,19 @@ A Go/weiqi/igo/baduk/goe engine written in Rust.
 
 Math.
 
+## What are the alternatives?
+
+Searching for “Go” on crates.io gives roughly a bazillion hits,
+most of them not about the game.
+So far, I was able to unearth the following rivals:
+* [joseki](https://crates.io/crates/joseki) (Supports SGF)
+* [libgo](https://crates.io/crates/libgo) (Supports GTP)
+* [baduk](https://crates.io/crates/baduk) (Supports SGF)
+* [go-bag](https://crates.io/crates/go-bag) (No features so far)
+
+They mostly seem to be unmaintained, though.
+(And they have less fun approaches to the necessary calculations.)
+
 ## Anything else you want to say?
 
 One day in the future I might write some useful documentation.
