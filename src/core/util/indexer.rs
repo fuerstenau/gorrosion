@@ -86,12 +86,17 @@ impl Indexer for usize {
 	}
 }
 
+// TODO: Find out if we can get this covered by tests instead of excluding it.
+//       Rather low priority though,
+//       as this probably does not actually need to be tested.
+// LCOV_EXCL_START
 /// Index a rectangle, traversing it row by row.
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Rect {
 	height: usize,
 	width: usize,
 }
+// LCOV_EXCL_STOP
 
 impl Rect {
 	pub fn new(height: usize, width: usize) -> Rect {
@@ -126,9 +131,39 @@ impl Indexer for Rect {
 
 #[cfg(test)]
 mod tests {
+	use super::Indexer;
+
+	#[test]
+	fn unit() {
+		assert_eq!(().range(), 1);
+		assert_eq!(().to_index(0), ());
+		assert_eq!(().to_num(()), 0);
+		assert!(().is_valid(()));
+	}
+
+	#[test]
+	#[should_panic]
+	fn unit_num_oob() {
+		().to_index(1);
+	} // LCOV_EXCL_LINE
+
+	#[test]
+	fn integer() {
+		let n = 12;
+		assert_eq!(n.range(), n);
+		assert_eq!(n.to_index(6), 6);
+		assert_eq!(n.to_num(11), 11);
+	}
+
+	#[test]
+	#[should_panic]
+	fn integer_index_oob() {
+		let n = 19;
+		n.to_num(n);
+	} // LCOV_EXCL_LINE
+
 	#[test]
 	fn rect() {
-		use super::Indexer;
 		use super::Rect;
 		let h = 7;
 		let w = 17;
@@ -143,7 +178,6 @@ mod tests {
 	#[test]
 	#[should_panic]
 	fn rect_index_oob() {
-		use super::Indexer;
 		use super::Rect;
 		let h = 2;
 		let w = 3;
@@ -154,7 +188,6 @@ mod tests {
 	#[test]
 	#[should_panic]
 	fn rect_num_oob() {
-		use super::Indexer;
 		use super::Rect;
 		let h = 2;
 		let w = 3;
