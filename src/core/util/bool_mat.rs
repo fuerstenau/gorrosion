@@ -13,34 +13,14 @@ use std::ops::{Index, IndexMut, Mul};
 /// A matrix with values in `bool`, the two-element semi-ring.
 /// Since not all matrices represent endomorphisms,
 /// rows and columns each have their own `Indexer`.
-#[derive(Debug, Eq, PartialEq)]
-pub struct BoolMat<'a, 'j: 'a, 'k: 'a, J: 'j + Indexer, K: 'k + Indexer> {
-	rect: indexer::Rect,
-	rows: &'j J,
-	columns: &'k K,
-	contents: BoolVec<'a, indexer::Rect>,
+#[derive(Debug, Eq, PartialEq, Clone)]
+pub struct BoolMat<J: Indexer, K: Indexer> {
+	rows: J,
+	columns: K,
+	contents: BoolVec<indexer::Rect>,
 }
 
-impl<'a, 'j, 'k, J, K> Clone for BoolMat<'a, 'j, 'k, J, K>
-where
-	J: Indexer,
-	K: Indexer,
-{
-	fn clone(&self) -> Self {
-		let rect = self.rect.clone();
-		let rows = self.rows;
-		let columns = self.columns;
-		let contents = self.contents.clone();
-		BoolMat {
-			rect,
-			rows,
-			columns,
-			contents,
-		}
-	}
-}
-
-impl<'a, 'j, 'k, J, K> Index<(J::Index, K::Index)> for BoolMat<'a, 'j, 'k, J, K>
+impl<J, K> Index<(J::Index, K::Index)> for BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
@@ -53,8 +33,8 @@ where
 	}
 }
 
-impl<'a, 'j, 'k, J, K> IndexMut<(J::Index, K::Index)>
-	for BoolMat<'a, 'j, 'k, J, K>
+impl<J, K> IndexMut<(J::Index, K::Index)>
+	for BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
@@ -68,17 +48,16 @@ where
 	}
 }
 
-impl<'a, 'j, 'k, J, K> BoolMat<'a, 'j, 'k, J, K>
+impl<J, K> BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
 {
 	/// Create a new Boolean matrix with all entries unset.
-	pub fn falses(rows: &'j J, columns: &'k K) -> Self {
+	pub fn falses(rows: J, columns: K) -> Self {
 		let rect = indexer::Rect::new(rows.range(), columns.range());
-		let contents = BoolVec::falses(&rect);
+		let contents = BoolVec::falses(rect);
 		BoolMat {
-			rect,
 			rows,
 			columns,
 			contents,
@@ -86,11 +65,10 @@ where
 	}
 
 	/// Create a new Boolean matrix with all entries set.
-	pub fn trues(rows: &'j J, columns: &'k K) -> Self {
+	pub fn trues(rows: J, columns: K) -> Self {
 		let rect = indexer::Rect::new(rows.range(), columns.range());
-		let contents = BoolVec::trues(&rect);
+		let contents = BoolVec::trues(rect);
 		BoolMat {
-			rect,
 			rows,
 			columns,
 			contents,
@@ -99,26 +77,25 @@ where
 
 	/// Evaluate the matrix on a vector,
 	/// which is considered as a column vector.
-	pub fn eval(&self, v: &BoolVec<'k, K>) -> BoolVec<'j, J> {
+	pub fn eval(&self, v: &BoolVec<K>) -> BoolVec<J> {
 		let matrix = self * BoolMat::column(v);
 		let indexer = matrix.rows;
-		matrix.contents.reindex(&indexer)
+		matrix.contents.reindex(indexer)
 	}
 }
 
-impl<'a, 'i, I> BoolMat<'a, 'i, 'static, I, ()>
+impl<I> BoolMat<I, ()>
 where
 	I: Indexer,
 {
 	/// Take a vector and write it as column,
 	/// i.e. a matrix where the columns are indexed by the unit type.
-	fn column(vec: &BoolVec<'i, I>) -> Self {
-		let rows = vec.indexer();
-		let columns = &();
+	fn column(vec: &BoolVec<I>) -> Self {
+		let rows = vec.indexer().clone();
+		let columns = ();
 		let rect = indexer::Rect::new(rows.range(), 1);
-		let contents = vec.clone().reindex(&rect);
+		let contents = vec.clone().reindex(rect);
 		BoolMat {
-			rect,
 			rows,
 			columns,
 			contents,
@@ -126,16 +103,16 @@ where
 	}
 }
 
-impl<'a, 'i, I> BoolMat<'a, 'i, 'i, I, I>
+impl<I> BoolMat<I, I>
 where
 	I: Indexer,
 {
 	/// Create a diagonal matrix
 	/// whose diagonal entries are given by a vector.
-	pub fn from_diag(diag: &BoolVec<'i, I>) -> Self {
+	pub fn from_diag(diag: &BoolVec<I>) -> Self {
 		let indexer = diag.indexer();
-		let rows = indexer;
-		let columns = indexer;
+		let rows = indexer.clone();
+		let columns = indexer.clone();
 		let mut res = BoolMat::falses(rows, columns);
 		let len = indexer.range();
 		for i in 0..len {
@@ -145,25 +122,26 @@ where
 	}
 
 	/// Create the identity matrix to a given `Indexer`.
-	pub fn id_matrix(indexer: &'i I) -> Self {
+	pub fn id_matrix(indexer: I) -> Self {
 		BoolMat::from_diag(&BoolVec::trues(indexer))
 	}
 }
 
-impl<'now, 'a, 'j, 'k, 'l, J, K, L> Mul<&'now BoolMat<'a, 'k, 'l, K, L>>
-	for &'now BoolMat<'a, 'j, 'k, J, K>
+// TODO: Implement consuming versions.
+impl<'now, J, K, L> Mul<&'now BoolMat<K, L>>
+	for &'now BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
 	L: Indexer,
 {
-	type Output = BoolMat<'a, 'j, 'l, J, L>;
+	type Output = BoolMat<J, L>;
 
-	fn mul(self, other: &BoolMat<'a, 'k, 'l, K, L>) -> Self::Output {
+	fn mul(self, other: &BoolMat<K, L>) -> Self::Output {
 		assert_eq!(self.columns, other.rows);
 		let len = self.columns.range();
-		let rows = self.rows;
-		let columns = other.columns;
+		let rows = self.rows.clone();
+		let columns = other.columns.clone();
 		let height = rows.range();
 		let width = columns.range();
 		let entry = |j, l| {
@@ -178,10 +156,8 @@ where
 			}
 		}
 		let rect = indexer::Rect::new(height, width);
-		let indexer = &rect;
-		let contents = BoolVec::from_data(data, indexer);
+		let contents = BoolVec::from_data(data, rect);
 		BoolMat {
-			rect,
 			rows,
 			columns,
 			contents,
@@ -189,16 +165,44 @@ where
 	}
 }
 
-impl<'now, 'a, 'j, 'k, 'l, J, K, L> Mul<BoolMat<'a, 'k, 'l, K, L>>
-	for &'now BoolMat<'a, 'j, 'k, J, K>
+impl<'now, J, K, L> Mul<BoolMat<K, L>>
+	for &'now BoolMat<J, K>
 where
 	J: Indexer,
 	K: Indexer,
 	L: Indexer,
 {
-	type Output = BoolMat<'a, 'j, 'l, J, L>;
+	type Output = BoolMat<J, L>;
 
-	fn mul(self, other: BoolMat<'a, 'k, 'l, K, L>) -> Self::Output {
+	fn mul(self, other: BoolMat<K, L>) -> Self::Output {
 		self * &other
+	}
+}
+
+impl<'now, J, K, L> Mul<&'now BoolMat<K, L>>
+	for BoolMat<J, K>
+where
+	J: Indexer,
+	K: Indexer,
+	L: Indexer,
+{
+	type Output = BoolMat<J, L>;
+
+	fn mul(self, other: &'now BoolMat<K, L>) -> Self::Output {
+		&self * other
+	}
+}
+
+impl<J, K, L> Mul<BoolMat<K, L>>
+	for BoolMat<J, K>
+where
+	J: Indexer,
+	K: Indexer,
+	L: Indexer,
+{
+	type Output = BoolMat<J, L>;
+
+	fn mul(self, other: BoolMat<K, L>) -> Self::Output {
+		&self * &other
 	}
 }

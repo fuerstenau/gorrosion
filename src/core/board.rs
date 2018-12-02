@@ -13,11 +13,11 @@ pub trait Board: Eq {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Graph<'a, 'i: 'a, I: 'i + Indexer> {
-	adj: BoolMat<'a, 'i, 'i, I, I>,
+pub struct Graph<I: Indexer> {
+	adj: BoolMat<I, I>,
 }
 
-impl<'a, 'i, I> Board for Graph<'a, 'i, I>
+impl<I> Board for Graph<I>
 where
 	I: Indexer,
 {
@@ -33,16 +33,15 @@ where
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Rect<'a, 'i: 'a> {
-	indexer: indexer::Rect,
-	graph: Graph<'a, 'i, indexer::Rect>,
+pub struct Rect {
+	graph: Graph<indexer::Rect>,
 }
 
-impl<'a, 'i> Rect<'a, 'i> {
-	pub fn new(height: usize, width: usize) -> Rect<'a, 'i> {
+impl Rect {
+	pub fn new(height: usize, width: usize) -> Rect {
 		let indexer = indexer::Rect::new(height, width);
-		let mut adj = BoolMat::id_matrix(&indexer);
-		let sym_set = |a, b| {
+		let mut adj = BoolMat::id_matrix(indexer);
+		{let mut sym_set = |a, b| {
 			adj[(a, b)] = true;
 			adj[(b, a)] = true;
 		};
@@ -59,13 +58,13 @@ impl<'a, 'i> Rect<'a, 'i> {
 				let b = (j, k);
 				sym_set(a, b);
 			}
-		}
+		}}
 		let graph = Graph { adj };
-		Rect { indexer, graph }
+		Rect { graph }
 	}
 }
 
-impl<'a, 'i> Board for Rect<'a, 'i> {
+impl Board for Rect {
 	type I = indexer::Rect;
 
 	fn adjacencies(&self) -> &BoolMat<Self::I, Self::I> {
@@ -78,18 +77,18 @@ impl<'a, 'i> Board for Rect<'a, 'i> {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct Square<'a, 'i: 'a> {
-	rect: Rect<'a, 'i>,
+pub struct Square {
+	rect: Rect,
 }
 
-impl<'a, 'i> Square<'a, 'i> {
-	pub fn new(length: usize) -> Square<'a, 'i> {
+impl Square {
+	pub fn new(length: usize) -> Square {
 		let rect = Rect::new(length, length);
 		Square { rect }
 	}
 }
 
-impl<'a, 'i> Board for Square<'a, 'i> {
+impl Board for Square {
 	type I = indexer::Rect;
 
 	fn adjacencies(&self) -> &BoolMat<Self::I, Self::I> {

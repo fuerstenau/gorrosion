@@ -9,7 +9,11 @@ use std::fmt::Debug;
 /// to internally used integers and vice versa.
 /// The internal indices are assumed to be
 /// a contiguous chunk of non-negative integers starting at zero.
-pub trait Indexer: Eq + Debug {
+// TODO: I do not want this to be Clone
+//       and rather would have it accessed through references.
+//       However, this leads to lifetime problems
+//       and at the very least would require the use of rc::Rc.
+pub trait Indexer: Eq + Debug + Clone{
 	type Index: Copy;
 
 	/// Convert an external index to an internal index.
