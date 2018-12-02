@@ -8,6 +8,7 @@ readme = "README.md"
 repository = "https://github.com/fuerstenau/gorrosion"
 keywords = ["Go", "baduk", "weiqi"]
 categories = ["game-engines"]
+documentation = "https://docs.rs/gorrosion"
 
 [badges]
 travis-ci = { repository = "fuerstenau/gorrosion", branch = "master" }
