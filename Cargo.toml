@@ -1,6 +1,6 @@
 [package]
 name = "gorrosion"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Peter Fürstenau <fuerstenau@mathematik.tu-darmstadt.de>"]
 description = "Yet another Go/weiqi/igo/baduk/goe whatchamacallit"
 license = "MIT OR Apache-2.0"
