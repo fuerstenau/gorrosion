@@ -225,34 +225,34 @@ mod tests {
 
 	#[test]
 	fn doc_tests() {
-	let indexer = 17;
-	let falses = BoolVec::falses(indexer);
-	for i in 0..17 {
-		assert_eq!(falses[i], false);
-	}
-	let indexer = 23;
-	let trues = BoolVec::trues(indexer);
-	for i in 0..23 {
-		assert_eq!(trues[i], true);
-	}
-	let indexer = 3;
-	let a = BoolVec::from_data(vec![true, true, false], indexer);
-	let b = BoolVec::from_data(vec![false, true, true], indexer);
-	let c = BoolVec::from_data(vec![false, true, false], indexer);
-	assert_eq!(a.intersection(&b), c);
-	let indexer = 3;
-	let a = BoolVec::from_data(vec![false, true, false], indexer);
-	let b = BoolVec::from_data(vec![false, false, true], indexer);
-	let c = BoolVec::from_data(vec![false, true, true], indexer);
-	assert_eq!(a.union(&b), c);
-	let indexer = 3;
-	let a = BoolVec::from_data(vec![true, true, false], indexer);
-	let b = BoolVec::from_data(vec![false, false, true], indexer);
-	assert_eq!(a.complement(), b);
-	let rect = indexer::Rect::new(2, 3);
-	let num = 6;
-	let vec_rect = BoolVec::falses(rect);
-	let vec_num = BoolVec::falses(num);
-	assert_eq!(vec_num, vec_rect.reindex(num));
+		let indexer = 17;
+		let falses = BoolVec::falses(indexer);
+		for i in 0..17 {
+			assert_eq!(falses[i], false);
+		}
+		let indexer = 23;
+		let trues = BoolVec::trues(indexer);
+		for i in 0..23 {
+			assert_eq!(trues[i], true);
+		}
+		let indexer = 3;
+		let a = BoolVec::from_data(vec![true, true, false], indexer);
+		let b = BoolVec::from_data(vec![false, true, true], indexer);
+		let c = BoolVec::from_data(vec![false, true, false], indexer);
+		assert_eq!(a.intersection(&b), c);
+		let indexer = 3;
+		let a = BoolVec::from_data(vec![false, true, false], indexer);
+		let b = BoolVec::from_data(vec![false, false, true], indexer);
+		let c = BoolVec::from_data(vec![false, true, true], indexer);
+		assert_eq!(a.union(&b), c);
+		let indexer = 3;
+		let a = BoolVec::from_data(vec![true, true, false], indexer);
+		let b = BoolVec::from_data(vec![false, false, true], indexer);
+		assert_eq!(a.complement(), b);
+		let rect = indexer::Rect::new(2, 3);
+		let num = 6;
+		let vec_rect = BoolVec::falses(rect);
+		let vec_num = BoolVec::falses(num);
+		assert_eq!(vec_num, vec_rect.reindex(num));
 	}
 }
