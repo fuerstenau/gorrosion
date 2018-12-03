@@ -5,7 +5,8 @@ use core::util::indexer::Indexer;
 
 // TODO: Kick out the rules into their own module.
 // TODO: There is some renaming to be done.
-// TODO: We might be able to get rid of a few of those lifetimes.
+// TODO: Refactor the caching inftrastructure.
+//       * Caching should not be mandatory.
 
 #[derive(PartialEq, Eq)]
 struct PlayerState<'board, T: 'board + Board> {
