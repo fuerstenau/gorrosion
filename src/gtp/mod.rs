@@ -1,12 +1,12 @@
-type byte = u8;
+type Byte = u8;
 
-// const discard: [byte; 31] = [0, …, 8, 11, …, 31, 127];
-const space: [byte; 2] = [9, 32]; // " \t"
-const newline: byte = 10; // "\n"
-const comment: byte = 35; // "#"
+// const discard: [Byte; 31] = [0, …, 8, 11, …, 31, 127];
+const space: [Byte; 2] = [9, 32]; // " \t"
+const newline: Byte = 10; // "\n"
+const comment: Byte = 35; // "#"
 
 mod types {
-	use super::byte;
+	use super::Byte;
 
 	pub trait GtpType {}
 	pub trait SimpleEntity {}
@@ -28,7 +28,7 @@ mod types {
 	impl SimpleEntity for Float {}
 
 	pub struct String {
-		data: Vec<byte>,
+		data: Vec<Byte>,
 	}
 
 	impl SimpleEntity for String {}
@@ -108,12 +108,38 @@ mod types {
 	impl<T: SingleLine> GtpType for MultilineList<T> {}
 }
 
-mod command {
-	use super::types;
+mod messages {
+	use super::types::*;
+	use super::Byte;
 
-	struct Command {
-		id: Option<types::Int>,
-		command_name: types::String,
-		arguments: types::Collection,
+	struct CommandMessage {
+		id: Option<Int>,
+		command_name: String,
+		arguments: Collection,
+	}
+
+	pub struct Line {
+		data: Vec<Byte>,
+	}
+
+	impl SingleLine for Line {}
+
+	// TODO: Support for standard error messages?
+
+	enum Content {
+		// According to the spec,
+		// a response may consist of a collection
+		// but since we do not have any means of distinguishing this
+		// from a multiline list
+		// that happens to have only a single entry,
+		// this work needs to be left to the later stages of processing.
+		// Collection(Collection),
+		Response(MultilineList<Line>),
+		ErrorMessage(MultilineList<List<String>>),
+	}
+
+	struct ResponseMessage {
+		id: Option<Int>,
+		content: Content,
 	}
 }
