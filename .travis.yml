@@ -34,4 +34,6 @@ before_script:
   - cargo install-update -a # update outdated cached binaries
 
 script:
-  - cargo build && cargo test && cargo coveralls
+  - cargo build --verbose
+  - cargo test --verbose
+  - cargo coveralls --verbose
