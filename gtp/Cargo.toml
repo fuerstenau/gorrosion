@@ -14,3 +14,6 @@ documentation = "https://docs.rs/gorrosion-gtp"
 travis-ci = { repository = "fuerstenau/gorrosion", branch = "master" }
 coveralls = { repository = "fuerstenau/gorrosion", branch = "master", service = "github" }
 maintenance = { status = "actively-developed" }
+
+[dependencies]
+nom = { version = "^4.0" }
