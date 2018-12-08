@@ -1,0 +1,16 @@
+[package]
+name = "gorrosion"
+version = "0.1.2"
+authors = ["Peter Fürstenau <fuerstenau@mathematik.tu-darmstadt.de>"]
+description = "Yet another Go/weiqi/igo/baduk/goe whatchamacallit"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/fuerstenau/gorrosion"
+keywords = ["Go", "baduk", "weiqi"]
+categories = ["game-engines"]
+documentation = "https://docs.rs/gorrosion"
+
+[badges]
+travis-ci = { repository = "fuerstenau/gorrosion", branch = "master" }
+coveralls = { repository = "fuerstenau/gorrosion", branch = "master", service = "github" }
+maintenance = { status = "actively-developed" }
